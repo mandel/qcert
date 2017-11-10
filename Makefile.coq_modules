@@ -227,6 +227,10 @@ MODULES = \
 	LambdaNRA/LambdaNRARuntime \
 	LambdaNRA/LambdaNRATypes \
 	LambdaNRA/LambdaNRASystem \
+	HyperLedgerComposerQuery/Lang/HLCQueryDef \
+	HyperLedgerComposerQuery/Lang/HLCQueryDec \
+	HyperLedgerComposerQuery/Lang/HLCQueryEval \
+	HyperLedgerComposerQuery/Lang/HLCQuery \
 	SQL/Lang/SQL \
 	SQL/Lang/SQLSize \
 	SQL/SQLRuntime \
