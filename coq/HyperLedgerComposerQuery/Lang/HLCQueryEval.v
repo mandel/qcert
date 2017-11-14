@@ -27,7 +27,7 @@ Section HLCQueryEval.
   
   Context {fruntime:foreign_runtime}.
 
-  (** Semantics of HLCQuery *)
+  (** Evaluator for HLCQuery *)
 
   Context (h:brand_relation_t).
   Section eval.
@@ -46,8 +46,6 @@ Section HLCQueryEval.
     Definition hlcquery_statement_from_eval
                (b:registry_name) (registries: list (registry_name*(list data))) : option (list data)
       := lookup string_dec registries b.
-
-    Definition hlcquery_datum := list (string*data).
 
     (* We want to differentiate having the wrong brand 
        (filtered out) from having the right brand but not being a record
@@ -135,6 +133,7 @@ Section HLCQueryEval.
                        (hlcquery_condition_filter_eval cond params dl')
          end.
 
+    (* TODO *)
     Definition hlcquery_statement_order_eval (order:hlcquery_ordering) (dl:list hlcquery_datum) : list hlcquery_datum
       := dl.
 
@@ -149,11 +148,6 @@ Section HLCQueryEval.
     Definition apply_optional {A} (f:(option (A -> A))) (a:A) : A
       := with_default f id a.
     
-    Definition apply_optional_chain {A} (fl:list (option (A -> A))) (a:A) : A
-      := fold_right apply_optional a fl.
-    
-    Import ListNotations.
-
     Definition hlcquery_statement_eval
                (q:hlcquery_statement)
                (registries: list (registry_name*(list data)))
@@ -170,13 +164,11 @@ Section HLCQueryEval.
                             | Some c => hlcquery_condition_filter_eval c params selected
                             | None => Some selected
                             end) in
-                         lift 
-                           (apply_optional_chain [
-                                  lift hlcquery_statement_order_eval ordering
-                                  ; lift hlcquery_statement_skip_eval skip
-                                  ; lift hlcquery_statement_limit_eval limit
-                                ]) ofiltered
-                      )
+                         bind ofiltered (fun filtered =>
+                         let ordered := apply_optional (lift hlcquery_statement_order_eval ordering) filtered in
+                         let skipped := apply_optional (lift hlcquery_statement_skip_eval skip) ordered in
+                         let limited :=  apply_optional (lift hlcquery_statement_limit_eval limit) skipped in
+                         Some limited))
                  ).
     
     Definition hlcquery_eval (q:hlcquery)
@@ -185,6 +177,96 @@ Section HLCQueryEval.
       := hlcquery_statement_eval (hlcquery_stmt q) registries params.
 
   End eval.
+
+  Section evalprops.
+
+    
+    Lemma hlcquery_statement_select_eval_cons_subrec (b:brand) (b':brands) r (dl:list data)
+      : sub_brands h b' (singleton b) ->
+        hlcquery_statement_select_eval b (dbrand b' (drec r) :: dl) =
+          lift (cons r) (hlcquery_statement_select_eval b dl)
+    .
+    Proof.
+      unfold hlcquery_statement_select_eval.
+      simpl.
+      generalize ((lift_map
+             (fun d : data =>
+              match d with
+              | dunit => None
+              | dnat _ => None
+              | dbool _ => None
+              | dstring _ => None
+              | dcoll _ => None
+              | drec _ => None
+              | dleft _ => None
+              | dright _ => None
+              | dbrand br r0 => Some (br, r0)
+              | dforeign _ => None
+              end) dl)); intro abs.
+      destruct abs; simpl; trivial.
+      generalize ((filter_map
+                     (fun '(br, r0) => if sub_brands_dec h br (singleton b) then Some r0 else None) l)); intros dl'.
+      destruct (sub_brands_dec h b' (singleton b)); simpl; tauto.
+    Qed.
+
+    Lemma hlcquery_statement_select_eval_cons_nsub
+          (b:brand) (b':brands) d (dl:list data)
+      : ~ sub_brands h b' (singleton b) -> 
+        hlcquery_statement_select_eval b (dbrand b' d :: dl) =
+        hlcquery_statement_select_eval b dl
+    .
+    Proof.
+      unfold hlcquery_statement_select_eval.
+      simpl.
+      generalize ((lift_map
+             (fun d : data =>
+              match d with
+              | dunit => None
+              | dnat _ => None
+              | dbool _ => None
+              | dstring _ => None
+              | dcoll _ => None
+              | drec _ => None
+              | dleft _ => None
+              | dright _ => None
+              | dbrand br r0 => Some (br, r0)
+              | dforeign _ => None
+              end) dl)); intro abs.
+      destruct abs; simpl; trivial.
+      generalize ((filter_map
+                       (fun '(br, r0) => if sub_brands_dec h br (singleton b) then Some r0 else None) l)); intros dl'.
+      destruct (sub_brands_dec h b' (singleton b)); try tauto.
+    Qed.
+
+    Lemma hlcquery_statement_select_eval_cons_sub_some_rec {b:brand} {b':brands} {d} {dl:list data} {res}
+      : sub_brands h b' (singleton b) ->
+        hlcquery_statement_select_eval b (dbrand b' d :: dl) = Some res ->
+        exists r, d = drec r.
+    Proof.
+      unfold hlcquery_statement_select_eval; simpl.
+      generalize ((lift_map
+             (fun d : data =>
+              match d with
+              | dunit => None
+              | dnat _ => None
+              | dbool _ => None
+              | dstring _ => None
+              | dcoll _ => None
+              | drec _ => None
+              | dleft _ => None
+              | dright _ => None
+              | dbrand br r0 => Some (br, r0)
+              | dforeign _ => None
+              end) dl)); intro abs.
+      destruct abs; simpl; try discriminate.
+      generalize ((filter_map
+                     (fun '(br, r0) => if sub_brands_dec h br (singleton b) then Some r0 else None) l)); intros dl'.
+      destruct (sub_brands_dec h b' (singleton b)); simpl; try tauto.
+      destruct d; try discriminate.
+      eauto.
+    Qed.
+
+    End evalprops.
 
 End HLCQueryEval.
 

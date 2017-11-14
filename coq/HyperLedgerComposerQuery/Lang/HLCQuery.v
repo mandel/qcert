@@ -17,6 +17,8 @@
   Require Export HLCQueryDef.
   Require Export HLCQueryDec.
   Require Export HLCQueryEval.
+  Require Export HLCQuerySemantics.
+  Require Export HLCQuerySemEval.
   
 (* 
 *** Local Variables: ***

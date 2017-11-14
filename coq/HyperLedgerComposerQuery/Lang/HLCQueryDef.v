@@ -58,11 +58,13 @@ Section HLCQueryDef.
     }.
 
   Record hlcquery : Set
-    := {
+    := mk_hlcquery {
         hlcquery_name: string;
         hlcquery_description: string;
         hlcquery_stmt: hlcquery_statement
       }.
+
+  Definition hlcquery_datum := list (string*data).
 
   (* Move to Utils/Lift *)
   Definition with_default {A:Type} (xo:option A) (def:A)
