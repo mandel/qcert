@@ -33,36 +33,9 @@ Section HLCQuerySemantics.
   Context (h:brand_relation_t).
   Section correctness.
 
-    (*  Move to Utils, somewhere appropriate *)
-    Lemma some_olift {A B} {f:A->option B} {x} {y} :
-      olift f x = Some y -> {z : A | x = Some z & Some y = f z}.
-    Proof.
-      unfold olift.
-      destruct x; try discriminate.
-      eauto.
-    Qed.
-
-    Lemma some_olift2 {A B C} {f:A->B->option C} {x} {y} {z} :
-      olift2 f x y = Some z -> {x' : A & {y':B | x = Some x' /\ y = Some y' & Some z = f x' y'}}.
-    Proof.
-      unfold olift2.
-      destruct x; try discriminate.
-      destruct y; try discriminate.
-      eauto.
-    Qed.
-
-    Lemma some_lift2 {A B C} {f:A->B->C} {x} {y} {z} :
-      lift2 f x y = Some z -> {x' : A & {y':B | x = Some x' /\ y = Some y' & z = f x' y'}}.
-    Proof.
-      unfold lift2.
-      destruct x; try discriminate.
-      destruct y; try discriminate.
-      inversion 1; eauto.
-    Qed.
-
     Lemma hlcquery_statement_from_sem_eval_same reg_name registries res :
       hlcquery_statement_from_sem reg_name registries res <->
-      hlcquery_statement_from_eval (with_default reg_name "default"%string) registries = Some res.
+      hlcquery_statement_from_eval (with_default reg_name hlcquery_statement_registry_default) registries = Some res.
     Proof.
       unfold hlcquery_statement_from_eval, with_default.
       split; intros.

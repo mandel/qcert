@@ -32,17 +32,6 @@ Section HLCQueryEval.
   Context (h:brand_relation_t).
   Section eval.
 
-    (* move to Utils/LiftIterators *)
-    Fixpoint filter_map {A B} (f : A -> option B) (l:list A) : list B :=
-      match l with
-      | nil => nil
-      | x :: t =>
-        match f x with
-        | None => filter_map f t
-        | Some x' => x' :: (filter_map f t)
-        end
-      end.
-
     Definition hlcquery_statement_from_eval
                (b:registry_name) (registries: list (registry_name*(list data))) : option (list data)
       := lookup string_dec registries b.
@@ -144,9 +133,6 @@ Section HLCQueryEval.
     Definition hlcquery_statement_limit_eval (limit:nat) (dl:list hlcquery_datum) :
       list hlcquery_datum
       := firstn limit dl.
-
-    Definition apply_optional {A} (f:(option (A -> A))) (a:A) : A
-      := with_default f id a.
     
     Definition hlcquery_statement_eval
                (q:hlcquery_statement)
@@ -155,7 +141,7 @@ Section HLCQueryEval.
       : option (list hlcquery_datum)
       := let 'mk_hlcquery_statement select_brand reg_name cond ordering skip limit := q in
          bind (hlcquery_statement_from_eval
-                 (with_default reg_name "default"%string) registries)
+                 (with_default reg_name hlcquery_statement_registry_default) registries)
               (fun regdata =>
                  bind (hlcquery_statement_select_eval select_brand regdata)
                       (fun selected =>
@@ -180,7 +166,6 @@ Section HLCQueryEval.
 
   Section evalprops.
 
-    
     Lemma hlcquery_statement_select_eval_cons_subrec (b:brand) (b':brands) r (dl:list data)
       : sub_brands h b' (singleton b) ->
         hlcquery_statement_select_eval b (dbrand b' (drec r) :: dl) =

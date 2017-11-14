@@ -160,6 +160,44 @@ Section LiftIterators.
 
   End lift_map.
 
+  Section filter_map.
+    
+    (* Unlike lift_map, which ensures that the sublist has no
+       "errors", converting any sub None into a top level None,
+       filter_map treats Nones as a marker to elide the item from the
+       list.  Thus, the different return type -- filter_map never
+       errors; at worst it returns the empty list.  *)
+    Fixpoint filter_map {A B} (f : A -> option B) (l:list A) : list B :=
+      match l with
+      | nil => nil
+      | x :: t =>
+        match f x with
+        | None => filter_map f t
+        | Some x' => x' :: (filter_map f t)
+        end
+      end.
+
+    Lemma filter_map_is_some_filtered_map {A B} (f : A -> option B) (l:list A) :
+      map Some (filter_map f l) = filter (fun x:option B => if x then true else false) (map f l).
+    Proof.
+      induction l; simpl; trivial.
+      destruct (f a); simpl; rewrite IHl; trivial.
+    Qed.
+
+    Lemma filter_map_app {A B} (f : A -> option B) (l1 l2:list A) :
+      filter_map f (l1 ++ l2) = filter_map f l1 ++ filter_map f l2.
+    Proof.
+      apply (map_inj Some Some).
+      - congruence.
+      - rewrite map_app.
+        repeat rewrite filter_map_is_some_filtered_map.
+        rewrite map_app.
+        rewrite filter_app.
+        trivial.
+    Qed.
+    
+  End filter_map.
+
   (** ** Lifted flat-map *)
   
   Section lift_flat_map.

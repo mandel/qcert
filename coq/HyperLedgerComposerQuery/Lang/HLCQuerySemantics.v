@@ -38,7 +38,7 @@ Section HLCQuerySemantics.
       list data ->
       Prop :=
     | hlcquery_statement_from_sem_default registries reg :
-        lookup string_dec registries "default"%string = Some reg ->
+        lookup string_dec registries hlcquery_statement_registry_default= Some reg ->
         hlcquery_statement_from_sem None registries reg
     | hlcquery_statement_from_sem_some registries regname reg :
         lookup string_dec registries regname = Some reg ->
@@ -142,7 +142,8 @@ Section HLCQuerySemantics.
          hlcquery_condition_filter_sem c params dl res ->
          hlcquery_condition_filter_optional_sem (Some c) params dl res
     .
-    
+
+        (* TODO *)
     Definition hlcquery_statement_order_sem (order:option hlcquery_ordering) (dl:list hlcquery_datum) (res:list hlcquery_datum)
       := dl = res.
 

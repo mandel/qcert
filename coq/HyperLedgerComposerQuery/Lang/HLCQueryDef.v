@@ -66,19 +66,12 @@ Section HLCQueryDef.
 
   Definition hlcquery_datum := list (string*data).
 
-  (* Move to Utils/Lift *)
-  Definition with_default {A:Type} (xo:option A) (def:A)
-    := match xo with
-       | Some x => x
-       | None => def
-       end.
-  
-  Definition hlcquery_statement_get_limit (q:hlcquery_statement) : nat
-    := with_default (hlcquery_statement_limit q) 25.
+  (* TODO: this is not currently used; our current default is ∞ *)
+  Definition hlcquery_statement_limit_default : nat
+    := 25.
 
-  Definition hlcquery_statement_get_from (q:hlcquery_statement) : registry_name
-    := with_default (hlcquery_statement_from q) "default"%string.
-
+  Definition hlcquery_statement_registry_default : string
+    := "default"%string.
 
 End HLCQueryDef.
 (* 
