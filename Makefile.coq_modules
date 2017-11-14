@@ -233,7 +233,8 @@ MODULES = \
 	HyperLedgerComposerQuery/Lang/HLCQueryEval \
 	HyperLedgerComposerQuery/Lang/HLCQuerySemantics \
 	HyperLedgerComposerQuery/Lang/HLCQuerySemEval \
-	HyperLedgerComposerQuery/Lang/HLCQuery \
+	HyperLedgerComposerQuery/HLCQueryRuntime \
+	HyperLedgerComposerQuery/HLCQuerySystem \
 	SQL/Lang/SQL \
 	SQL/Lang/SQLSize \
 	SQL/SQLRuntime \

@@ -14,15 +14,16 @@
  * limitations under the License.
  *)
 
-  Require Export HLCQueryDef.
-  Require Export HLCQueryDec.
-  Require Export HLCQuerySize.
-  Require Export HLCQueryEval.
-  Require Export HLCQuerySemantics.
-  Require Export HLCQuerySemEval.
+Require Export CommonRuntime.
+Require Export HLCQueryDef.
+Require Export HLCQueryDec.
+Require Export HLCQuerySize.
+Require Export HLCQueryEval.
+
   
+
 (* 
 *** Local Variables: ***
-*** coq-load-path: (("../../../coq" "Qcert")) ***
+*** coq-load-path: (("../../coq" "Qcert")) ***
 *** End: ***
 *)
