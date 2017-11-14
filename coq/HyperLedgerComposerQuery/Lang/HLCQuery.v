@@ -16,6 +16,7 @@
 
   Require Export HLCQueryDef.
   Require Export HLCQueryDec.
+  Require Export HLCQuerySize.
   Require Export HLCQueryEval.
   Require Export HLCQuerySemantics.
   Require Export HLCQuerySemEval.

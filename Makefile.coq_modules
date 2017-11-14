@@ -229,6 +229,7 @@ MODULES = \
 	LambdaNRA/LambdaNRASystem \
 	HyperLedgerComposerQuery/Lang/HLCQueryDef \
 	HyperLedgerComposerQuery/Lang/HLCQueryDec \
+	HyperLedgerComposerQuery/Lang/HLCQuerySize \
 	HyperLedgerComposerQuery/Lang/HLCQueryEval \
 	HyperLedgerComposerQuery/Lang/HLCQuerySemantics \
 	HyperLedgerComposerQuery/Lang/HLCQuerySemEval \
