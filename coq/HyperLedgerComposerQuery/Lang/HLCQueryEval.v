@@ -170,6 +170,24 @@ Section HLCQueryEval.
               (bind (bindings_to_registries cenv)
                     (fun registries => hlcquery_eval q registries params)).
 
+    Definition undrec (d:data) : option (list (string * data))
+      := match d with
+         | drec r => Some r
+         | _ => None
+         end.
+    
+    Definition eval_hlcquery_top_curried (q:hlcquery) (input: bindings) : option data
+      := bind
+           (lookup string_dec input "registries"%string)
+           (fun regdata =>
+              bind (undrec regdata)
+                   (fun registries =>
+                      bind (lookup string_dec input "parameters"%string)
+                           (fun paramsdata =>
+                              bind (undrec paramsdata)
+                                   (fun params =>
+                                      eval_hlcquery_top q params registries)))).
+
   End eval.
 
   Section evalprops.

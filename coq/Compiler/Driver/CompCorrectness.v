@@ -371,9 +371,9 @@ Section CompCorrectness.
                            (lift_output (eval_lambda_nra ?h ?c (lift_input ?i))) ] =>
         destruct  (lift_output (eval_lambda_nra h c (lift_input i))); simpl; try reflexivity;
         unfold equal_outputs; simpl; match_destr; auto
-      | [ |- equal_outputs (lift_output (eval_hlcquery ?h ?c ?p (lift_input ?i)))
-                           (lift_output (eval_hlcquery ?h ?c ?p (lift_input ?i))) ] =>
-        destruct  (lift_output (eval_hlcquery h c p (lift_input i))); simpl; try reflexivity;
+      | [ |- equal_outputs (lift_output (eval_hlcquery ?h ?c (lift_input ?i)))
+                           (lift_output (eval_hlcquery ?h ?c (lift_input ?i))) ] =>
+        destruct  (lift_output (eval_hlcquery h c (lift_input i))); simpl; try reflexivity;
         unfold equal_outputs; simpl; match_destr; auto
       | [ |- equal_outputs (lift_output (nnrcmr_eval_top ?h ?init ?c ?i))
                            (lift_output (nnrcmr_eval_top ?h ?init ?c ?i)) ] =>
@@ -415,7 +415,7 @@ Section CompCorrectness.
     | (Dv_sql _, Q_sql _) => True
     | (Dv_sqlpp _, Q_sqlpp _) => True
     | (Dv_lambda_nra _, Q_lambda_nra _) => True
-    | (Dv_hlcquery _, Q_hlcquery _ _) => True
+    | (Dv_hlcquery _, Q_hlcquery _) => True
     | (Dv_nra _, Q_nra _) => True
     | (Dv_nraenv_core _, Q_nraenv_core _) => True
     | (Dv_nraenv _, Q_nraenv _) => True
@@ -755,8 +755,8 @@ Section CompCorrectness.
 
     Lemma correct_driver_succeeds_hlcquery:
       forall dv, driver_correct (Dv_hlcquery dv) ->
-                 (forall q params, Forall query_not_error
-                                   (compile (Dv_hlcquery dv) (Q_hlcquery q params))).
+                 (forall q, Forall query_not_error
+                                   (compile (Dv_hlcquery dv) (Q_hlcquery q))).
     Proof.
       intros.
       rewrite Forall_forall; intros.
@@ -1577,8 +1577,8 @@ Section CompCorrectness.
 
     Lemma correct_driver_preserves_eval_hlcquery:
       forall dv, driver_correct (Dv_hlcquery dv) ->
-                 (forall q params, Forall (query_preserves_eval (Q_hlcquery q params))
-                                   (compile (Dv_hlcquery dv) (Q_hlcquery q params))).
+                 (forall q, Forall (query_preserves_eval (Q_hlcquery q))
+                                   (compile (Dv_hlcquery dv) (Q_hlcquery q))).
     Proof.
       intros.
       rewrite Forall_forall; intros.

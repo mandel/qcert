@@ -307,7 +307,7 @@ Section CompLang.
     | Q_oql : oql -> query
     | Q_sql : sql -> query
     | Q_sqlpp : sqlpp -> query
-    | Q_hlcquery (q:hlcquery) (params:hlcquery_params) : query
+    | Q_hlcquery : hlcquery -> query
     | Q_lambda_nra : lambda_nra -> query
     | Q_nra : nra -> query
     | Q_nraenv_core : nraenv_core -> query
@@ -362,7 +362,7 @@ Section CompLang.
       | Q_sql _ => L_sql
       | Q_sqlpp _ => L_sqlpp
       | Q_lambda_nra _ => L_lambda_nra
-      | Q_hlcquery _ _ => L_hlcquery
+      | Q_hlcquery _ => L_hlcquery
       | Q_nra _ => L_nra
       | Q_nraenv_core _ => L_nraenv_core
       | Q_nraenv _ => L_nraenv

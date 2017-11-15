@@ -976,13 +976,13 @@ Section CompDriver.
       in
       (Q_lambda_nra q) :: queries.
 
-    Definition compile_hlcquery (dv: hlcquery_driver) (q: hlcquery) (params:hlcquery_params): list query :=
+    Definition compile_hlcquery (dv: hlcquery_driver) (q: hlcquery): list query :=
       let queries :=
           match dv with
           | Dv_hlcquery_stop => nil
           end
       in
-      (Q_hlcquery q params) :: queries.
+      (Q_hlcquery q) :: queries.
 
     Definition compile (dv: driver) (q: query) : list query :=
       match (dv, q) with
@@ -991,7 +991,7 @@ Section CompDriver.
       | (Dv_designer_rule dv, Q_designer_rule q) => compile_designer_rule dv q
       | (Dv_camp dv, Q_camp q) => compile_camp dv q
       | (Dv_oql dv, Q_oql q) => compile_oql dv q
-      | (Dv_hlcquery dv, Q_hlcquery q params) => compile_hlcquery dv q params
+      | (Dv_hlcquery dv, Q_hlcquery q) => compile_hlcquery dv q
       | (Dv_sql dv, Q_sql q) => compile_sql dv q
       | (Dv_sqlpp dv, Q_sqlpp q) => compile_sqlpp dv q
       | (Dv_lambda_nra dv, Q_lambda_nra q) => compile_lambda_nra dv q
