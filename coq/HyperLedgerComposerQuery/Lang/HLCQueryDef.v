@@ -65,6 +65,7 @@ Section HLCQueryDef.
       }.
 
   Definition hlcquery_datum := list (string*data).
+  Definition hlcquery_params := list (string*data).
 
   (* TODO: this is not currently used; our current default is ∞ *)
   Definition hlcquery_statement_limit_default : nat

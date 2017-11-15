@@ -29,6 +29,7 @@ Section CompLang.
     | L_oql : language
     | L_sql : language
     | L_sqlpp : language
+    | L_hlcquery : language
     | L_lambda_nra : language
     | L_nra : language
     | L_nraenv_core : language
@@ -72,6 +73,7 @@ Section CompLang.
       | "oql"%string => L_oql
       | "sql"%string => L_sql
       | "sqlpp"%string => L_sqlpp
+      | "hlcquery"%string => L_hlcquery
       | "lambda_nra"%string => L_lambda_nra
       | "nra"%string => L_nra
       | "nraenv_core"%string => L_nraenv_core
@@ -100,6 +102,7 @@ Section CompLang.
       | L_oql => "oql"%string
       | L_sql => "sql"%string
       | L_sqlpp => "sqlpp"%string
+      | L_hlcquery => "hlcquery"%string 
       | L_lambda_nra => "lambda_nra"%string
       | L_nra => "nra"%string
       | L_nraenv_core => "nraenv_core"%string
@@ -151,7 +154,8 @@ Section CompLang.
 
     Open Scope string.
     Definition language_descriptions :=
-      (L_sql,FrontEnd,"SQL", "Structured Query Language")
+      (L_hlcquery,FrontEnd,"HLCQuery", "HyperLedger Composer Query Language")
+        ::(L_sql,FrontEnd,"SQL", "Structured Query Language")
         :: (L_sqlpp,FrontEnd,"SQL++","SQL With Semi-Structured Data Extensions")
         :: (L_oql,FrontEnd,"OQL", "Object Query Language")
         :: (L_lambda_nra,FrontEnd,"λ-NRA", "Lambda Nested Relational Algebra")
@@ -238,6 +242,7 @@ Section CompLang.
     Require Import SQLPPRuntime.
     Require Import OQLRuntime.
     Require Import LambdaNRARuntime.
+    Require Import HLCQueryRuntime.
     (** Rule languages *)
     Require Import CAMPRuleRuntime.
     Require Import TechRuleRuntime.
@@ -277,6 +282,7 @@ Section CompLang.
     Definition oql := oql.
     Definition sql := sql.
     Definition sqlpp := sqlpp.
+    Definition hlcquery := hlcquery.
     Definition lambda_nra := lambda_nra.
     Definition nra := nra.
     Definition nraenv_core := nraenv_core.
@@ -292,7 +298,7 @@ Section CompLang.
     Definition spark_rdd := spark_rdd.
     Definition spark_df := spark_df.
     Definition cloudant := cloudant.
-
+    
     Inductive query : Set :=
     | Q_camp_rule : camp_rule -> query
     | Q_tech_rule : tech_rule -> query
@@ -301,6 +307,7 @@ Section CompLang.
     | Q_oql : oql -> query
     | Q_sql : sql -> query
     | Q_sqlpp : sqlpp -> query
+    | Q_hlcquery (q:hlcquery) (params:hlcquery_params) : query
     | Q_lambda_nra : lambda_nra -> query
     | Q_nra : nra -> query
     | Q_nraenv_core : nraenv_core -> query
@@ -328,6 +335,7 @@ Section CompLang.
       | Case_aux c "Q_sql"%string
       | Case_aux c "Q_sqlpp"%string
       | Case_aux c "Q_lambda_nra"%string
+      | Case_aux c "Q_hlcquery"%string
       | Case_aux c "Q_nra"%string
       | Case_aux c "Q_nraenv_core"%string
       | Case_aux c "Q_nraenv"%string
@@ -354,6 +362,7 @@ Section CompLang.
       | Q_sql _ => L_sql
       | Q_sqlpp _ => L_sqlpp
       | Q_lambda_nra _ => L_lambda_nra
+      | Q_hlcquery _ _ => L_hlcquery
       | Q_nra _ => L_nra
       | Q_nraenv_core _ => L_nraenv_core
       | Q_nraenv _ => L_nraenv
@@ -385,6 +394,7 @@ Section CompLang.
       | L_oql => oql
       | L_sql => sql
       | L_sqlpp => sqlpp
+      | L_hlcquery => hlcquery
       | L_lambda_nra => lambda_nra
       | L_nra => nra
       | L_nraenv_core => nraenv_core
@@ -415,6 +425,7 @@ Tactic Notation "language_cases" tactic(first) ident(c) :=
   | Case_aux c "L_oql"%string
   | Case_aux c "L_sql"%string
   | Case_aux c "L_sqlpp"%string
+  | Case_aux c "L_hlcquery"%string
   | Case_aux c "L_lambda_nra"%string
   | Case_aux c "L_nra"%string
   | Case_aux c "L_nraenv_core"%string

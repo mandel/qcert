@@ -25,6 +25,7 @@ Section CompEval.
   Require Import SQLRuntime.
   Require Import OQLRuntime.
   Require Import LambdaNRARuntime.
+  Require Import HLCQueryRuntime.
   (** Rule languages *)
   Require Import CAMPRuleRuntime.
   Require Import TechRuleRuntime.
@@ -90,6 +91,12 @@ Section CompEval.
     (* Language: lambda_nra *)
     Definition eval_lambda_nra (q:lambda_nra) (cenv: bindings) : option data :=
       LambdaNRA.lambda_nra_eval_top h q cenv.
+      
+      (* TODO: convert to the right form (need a map over the bindings to make them lists) *)
+      (* and convert the output into a dcoll (drec ...) *)
+
+    Definition eval_hlcquery (q:hlcquery) (params:hlcquery_params) (cenv: bindings) : option data
+      := HLCQueryEval.eval_hlcquery_top h q params cenv.
 
     (* Language: nra *)
     Definition eval_nra (q:nra) (cenv: bindings) : option data :=
@@ -158,6 +165,7 @@ Section CompEval.
       | Q_sql _ => Ev_out_unsupported ("No evaluation support for "++(name_of_language (language_of_query q)))
       | Q_sqlpp q => Ev_out_unsupported "SQL++ eval not yet implemented"
       | Q_lambda_nra q => lift_output (eval_lambda_nra q (lift_input ev_in))
+      | Q_hlcquery q params => lift_output (eval_hlcquery q params (lift_input ev_in))
       | Q_nra q => lift_output (eval_nra q (lift_input ev_in))
       | Q_nraenv_core q => lift_output (eval_nraenv_core q (lift_input ev_in))
       | Q_nraenv q => lift_output (eval_nraenv q (lift_input ev_in))
@@ -185,6 +193,7 @@ Section CompEval.
       | Q_sql _ => Ev_out_unsupported ("No debug evaluation support for "++(name_of_language (language_of_query q)))
       | Q_sqlpp _ => Ev_out_unsupported ("No debug evaluation support for "++(name_of_language (language_of_query q)))
       | Q_lambda_nra _ => Ev_out_unsupported ("No debug evaluation support for "++(name_of_language (language_of_query q)))
+      | Q_hlcquery _ _ => Ev_out_unsupported ("No debug evaluation support for "++(name_of_language (language_of_query q)))
       | Q_nra _ => Ev_out_unsupported ("No debug evaluation support for "++(name_of_language (language_of_query q)))
       | Q_nraenv_core _ => Ev_out_unsupported ("No debug evaluation support for "++(name_of_language (language_of_query q)))
       | Q_nraenv _ => Ev_out_unsupported ("No debug evaluation support for "++(name_of_language (language_of_query q)))

@@ -27,6 +27,7 @@ Section CompStat.
   Require Import SQLPPRuntime.
   Require Import OQLRuntime.
   Require Import LambdaNRARuntime.
+  Require Import HLCQueryRuntime.
   (** Rule languages *)
   Require Import CAMPRuleRuntime.
   Require Import TechRuleRuntime.
@@ -194,6 +195,12 @@ Section CompStat.
   Definition stat_lambda_nra (q: lambda_nra) : data :=
     drec
       (("lambda_nra_stat", dstring "no stat available")
+         :: nil).
+
+    Definition stat_hlcquery (q: hlcquery) (params:hlcquery_params) : data :=
+    drec
+      (("hlcquery_size", dnat (Z_of_nat (hlcquery_size q)))
+         :: ("hlcquery_params", dnat (Z_of_nat (List.length params)))
          :: nil).
 
   (* Build the tree of all stats *)
@@ -403,6 +410,11 @@ Section CompStat.
     | s => s
     end.
 
+    Definition stat_tree_hlcquery (q: hlcquery) (params:hlcquery_params) : data :=
+    drec
+      (("hlcquery", stat_hlcquery q params)
+         :: nil).
+
   (* Top level *)
 
   Definition json_stat_of_query (q:query) : string :=
@@ -416,6 +428,7 @@ Section CompStat.
         | Q_sql q => stat_sql q
         | Q_sqlpp q => stat_sqlpp q
         | Q_lambda_nra q => stat_lambda_nra q
+        | Q_hlcquery q params => stat_hlcquery q params
         | Q_nra q => stat_nra q
         | Q_nraenv_core q => stat_nraenv_core q
         | Q_nraenv q => stat_nraenv q
@@ -446,6 +459,7 @@ Section CompStat.
         | Q_sql q => stat_tree_sql q
         | Q_sqlpp q => stat_tree_sqlpp q
         | Q_lambda_nra q => stat_tree_lambda_nra q
+        | Q_hlcquery q params => stat_tree_hlcquery q params
         | Q_nra q => stat_tree_nra q
         | Q_nraenv_core q => stat_tree_nraenv_core q
         | Q_nraenv q => stat_tree_nraenv q

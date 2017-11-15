@@ -29,6 +29,7 @@ Section CompDriver.
   Require Import SQLPPRuntime.
   Require Import OQLRuntime.
   Require Import LambdaNRARuntime.
+  Require Import HLCQueryRuntime.
   (* Rule languages *)
   Require Import CAMPRuleRuntime.
   Require Import TechRuleRuntime.
@@ -412,6 +413,9 @@ Section CompDriver.
     | Dv_lambda_nra_stop : lambda_nra_driver
     | Dv_lambda_nra_to_nraenv : nraenv_driver -> lambda_nra_driver.
 
+  Inductive hlcquery_driver : Set :=
+    | Dv_hlcquery_stop : hlcquery_driver.
+
   Inductive driver : Set :=
   | Dv_camp_rule : camp_rule_driver -> driver
   | Dv_tech_rule : tech_rule_driver -> driver
@@ -421,6 +425,7 @@ Section CompDriver.
   | Dv_sql : sql_driver -> driver
   | Dv_sqlpp : sqlpp_driver -> driver
   | Dv_lambda_nra : lambda_nra_driver -> driver
+  | Dv_hlcquery : hlcquery_driver -> driver
   | Dv_nra : nra_driver -> driver
   | Dv_nraenv_core : nraenv_core_driver -> driver
   | Dv_nraenv : nraenv_driver -> driver
@@ -447,6 +452,7 @@ Section CompDriver.
     | Case_aux c "Dv_oql"%string
     | Case_aux c "Dv_sql"%string
     | Case_aux c "Dv_lambda_nra"%string
+    | Case_aux c "Dv_hlcquery"%string
     | Case_aux c "Dv_nra"%string
     | Case_aux c "Dv_nraenv_core"%string
     | Case_aux c "Dv_nraenv"%string
@@ -481,6 +487,7 @@ Section CompDriver.
     | Dv_camp _ => L_camp
     | Dv_oql _ => L_oql
     | Dv_sql _ => L_sql
+    | Dv_hlcquery _ => L_hlcquery
     | Dv_sqlpp _ => L_sqlpp
     | Dv_lambda_nra _ => L_lambda_nra
     | Dv_cldmr _ => L_cldmr
@@ -636,6 +643,11 @@ Section CompDriver.
     | Dv_sqlpp_to_nraenv dv => 1 + driver_length_nraenv dv
     end.
 
+  Definition driver_length_hlcquery (dv: hlcquery_driver) :=
+    match dv with
+    | Dv_hlcquery_stop => 1
+    end.
+
   Definition driver_length_lambda_nra (dv: lambda_nra_driver) :=
     match dv with
     | Dv_lambda_nra_stop => 1
@@ -652,6 +664,7 @@ Section CompDriver.
     | Dv_sql dv => driver_length_sql dv
     | Dv_sqlpp dv => driver_length_sqlpp dv
     | Dv_lambda_nra dv => driver_length_lambda_nra dv
+    | Dv_hlcquery dv => driver_length_hlcquery dv
     | Dv_nra dv => driver_length_nra dv
     | Dv_nraenv_core dv => driver_length_nraenv_core dv
     | Dv_nraenv dv => driver_length_nraenv dv
@@ -963,6 +976,14 @@ Section CompDriver.
       in
       (Q_lambda_nra q) :: queries.
 
+    Definition compile_hlcquery (dv: hlcquery_driver) (q: hlcquery) (params:hlcquery_params): list query :=
+      let queries :=
+          match dv with
+          | Dv_hlcquery_stop => nil
+          end
+      in
+      (Q_hlcquery q params) :: queries.
+
     Definition compile (dv: driver) (q: query) : list query :=
       match (dv, q) with
       | (Dv_camp_rule dv, Q_camp_rule q) => compile_camp_rule dv q
@@ -970,6 +991,7 @@ Section CompDriver.
       | (Dv_designer_rule dv, Q_designer_rule q) => compile_designer_rule dv q
       | (Dv_camp dv, Q_camp q) => compile_camp dv q
       | (Dv_oql dv, Q_oql q) => compile_oql dv q
+      | (Dv_hlcquery dv, Q_hlcquery q params) => compile_hlcquery dv q params
       | (Dv_sql dv, Q_sql q) => compile_sql dv q
       | (Dv_sqlpp dv, Q_sqlpp q) => compile_sqlpp dv q
       | (Dv_lambda_nra dv, Q_lambda_nra q) => compile_lambda_nra dv q
@@ -995,343 +1017,94 @@ Section CompDriver.
 
   (** Driver builder *)
   Section CompDriverConfig.
-  Definition push_translation config lang dv :=
+    Definition push_translation config lang dv :=
+      let err_err err := Dv_error ("Cannot compile to error ("++err++")") in
+      let unknown_err := Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv)) in
     match lang with
     | L_camp_rule =>
       match dv with
       | Dv_camp dv => Dv_camp_rule (Dv_camp_rule_to_camp dv)
-      | Dv_nraenv_core _
-      | Dv_nraenv _
-      | Dv_nra _
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_tech_rule =>
       match dv with
       | Dv_camp_rule dv => Dv_tech_rule (Dv_tech_rule_to_camp_rule dv)
-      | Dv_camp _
-      | Dv_nraenv_core _
-      | Dv_nraenv _
-      | Dv_nra _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_designer_rule =>
       match dv with
       | Dv_camp_rule dv => Dv_designer_rule (Dv_designer_rule_to_camp_rule dv)
-      | Dv_camp _
-      | Dv_nraenv_core _
-      | Dv_nraenv _
-      | Dv_nra _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_camp =>
       match dv with
       | Dv_nraenv_core dv => Dv_camp (Dv_camp_to_nraenv_core dv)
       | Dv_nraenv dv => Dv_camp (Dv_camp_to_nraenv dv)
       | Dv_nra dv => Dv_camp (Dv_camp_to_nra dv)
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_oql =>
       match dv with
       | Dv_nraenv dv => Dv_oql (Dv_oql_to_nraenv dv)
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nra _
-      | Dv_nraenv_core _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
+      end
+    | L_hlcquery =>
+      match dv with
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
   | L_sql =>
       match dv with
       | Dv_nraenv dv => Dv_sql (Dv_sql_to_nraenv dv)
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nra _
-      | Dv_nraenv_core _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
   | L_sqlpp =>
       match dv with
       | Dv_nraenv dv => Dv_sqlpp (Dv_sqlpp_to_nraenv dv)
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nra _
-      | Dv_nraenv_core _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_lambda_nra =>
       match dv with
       | Dv_nraenv dv => Dv_lambda_nra (Dv_lambda_nra_to_nraenv dv)
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nra _
-      | Dv_nraenv_core _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_nra =>
       match dv with
       | Dv_nnrc_core dv => Dv_nra (Dv_nra_to_nnrc_core dv)
       | Dv_nraenv_core dv => Dv_nra (Dv_nra_to_nraenv_core dv)
-      | Dv_nra _
-      | Dv_nraenv _
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_nraenv_core =>
       match dv with
       | Dv_nnrc_core dv => Dv_nraenv_core (Dv_nraenv_core_to_nnrc_core dv)
       | Dv_nra dv => Dv_nraenv_core (Dv_nraenv_core_to_nra dv)
       | Dv_nraenv dv => Dv_nraenv_core (Dv_nraenv_core_to_nraenv dv)
-      | Dv_nraenv_core _
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_nraenv =>
       match dv with
       | Dv_nraenv_core dv => Dv_nraenv (Dv_nraenv_to_nraenv_core dv)
       | Dv_nraenv dv => Dv_nraenv (Dv_nraenv_optim (get_optim_config L_nraenv config.(comp_optim_config)) dv)
       | Dv_nnrc dv => Dv_nraenv (Dv_nraenv_to_nnrc dv)
-      | Dv_nra _
-      | Dv_nnrc_core _
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_nnrc_core =>
       match dv with
       | Dv_camp dv => Dv_nnrc_core (Dv_nnrc_core_to_camp (List.map fst (vdbindings_of_constants_config config.(comp_constants))) dv) (* XXX to check XXX *)
       | Dv_nnrc dv => Dv_nnrc_core (Dv_nnrc_core_to_nnrc dv)
-      | Dv_nnrc_core _
-      | Dv_nraenv _
-      | Dv_nnrcmr _
-      | Dv_dnnrc _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nra _
-      | Dv_nraenv_core _
-      | Dv_cldmr _
-      | Dv_dnnrc_typed _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_nnrc =>
       match dv with
@@ -1341,25 +1114,8 @@ Section CompDriver.
       | Dv_java dv => Dv_nnrc (Dv_nnrc_to_java config.(comp_class_name) config.(comp_java_imports) dv)
       | Dv_nnrc dv => Dv_nnrc (Dv_nnrc_optim (get_optim_config L_nnrc config.(comp_optim_config)) dv)
       | Dv_nnrc_core dv => Dv_nnrc (Dv_nnrc_to_nnrc_core dv)
-      | Dv_camp _
-      | Dv_nraenv _
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nra _
-      | Dv_nraenv_core _
-      | Dv_cldmr _
-      | Dv_dnnrc_typed _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_nnrcmr =>
       match dv with
@@ -1368,83 +1124,21 @@ Section CompDriver.
       | Dv_dnnrc dv => Dv_nnrcmr (Dv_nnrcmr_to_dnnrc dv)
       | Dv_cldmr dv => Dv_nnrcmr (Dv_nnrcmr_to_cldmr config.(comp_brand_rel) dv)
       | Dv_nnrcmr dv => Dv_nnrcmr (Dv_nnrcmr_optim dv)
-      | Dv_nraenv _
-      | Dv_nnrc_core _
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nra _
-      | Dv_nraenv_core _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_cldmr =>
       match dv with
       | Dv_cloudant dv => Dv_cldmr (Dv_cldmr_to_cloudant (config.(comp_qname_lowercase)) config.(comp_brand_rel) dv)
-      | Dv_nraenv _
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nra _
-      | Dv_nraenv_core _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_dnnrc_typed _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_dnnrc =>
       match dv with
       | Dv_dnnrc_typed dv =>
           Dv_dnnrc (Dv_dnnrc_to_dnnrc_typed (tdbindings_of_constants_config config.(comp_constants)) dv)
-      | Dv_dnnrc _
-      | Dv_nraenv _
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nra _
-      | Dv_nraenv_core _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_spark_df _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
     | L_dnnrc_typed =>
       match dv with
@@ -1452,38 +1146,11 @@ Section CompDriver.
           Dv_dnnrc_typed (Dv_dnnrc_typed_to_spark_df (tdbindings_of_constants_config config.(comp_constants)) config.(comp_qname) dv)
       | Dv_dnnrc_typed dv =>
         Dv_dnnrc_typed (Dv_dnnrc_typed_optim dv)
-      | Dv_nraenv _
-      | Dv_camp_rule _
-      | Dv_tech_rule _
-      | Dv_designer_rule _
-      | Dv_camp _
-      | Dv_oql _
-      | Dv_sql _
-      | Dv_sqlpp _
-      | Dv_lambda_nra _
-      | Dv_nra _
-      | Dv_nraenv_core _
-      | Dv_nnrc_core _
-      | Dv_nnrc _
-      | Dv_nnrcmr _
-      | Dv_cldmr _
-      | Dv_dnnrc _
-      | Dv_javascript _
-      | Dv_java _
-      | Dv_spark_rdd _
-      | Dv_cloudant _ =>
-          Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-      | Dv_error err =>
-          Dv_error ("Cannot compile to error ("++err++")")
+      | Dv_error err => err_err err
+      | _ => unknown_err
       end
-    | L_javascript
-    | L_java
-    | L_spark_rdd
-    | L_spark_df
-    | L_cloudant =>
-      Dv_error ("No compilation path from "++(name_of_language lang)++" to "++(name_of_driver dv))
-    | L_error err =>
-      Dv_error ("No compilation from error ("++err++")")
+    | L_error err => err_err err
+    | _ => unknown_err
     end.
 
   Definition driver_of_language lang :=
@@ -1495,6 +1162,7 @@ Section CompDriver.
     | L_oql => Dv_oql Dv_oql_stop
     | L_sql => Dv_sql Dv_sql_stop
     | L_sqlpp => Dv_sqlpp Dv_sqlpp_stop
+    | L_hlcquery => Dv_hlcquery Dv_hlcquery_stop
     | L_lambda_nra => Dv_lambda_nra Dv_lambda_nra_stop
     | L_nra => Dv_nra Dv_nra_stop
     | L_nraenv_core => Dv_nraenv_core Dv_nraenv_core_stop
@@ -1512,6 +1180,47 @@ Section CompDriver.
     | L_cloudant => Dv_cloudant Dv_cloudant_stop
     | L_error err => Dv_error ("No driver for error: "++err)
     end.
+
+  Lemma language_of_driver_of_language (dv:driver) l :
+    no_L_error l ->
+    language_of_driver (driver_of_language l) = l.
+  Proof.
+    destruct l; try reflexivity.
+    inversion 1.
+  Qed.
+
+    Lemma compile_nnil_cnd :
+      (forall dv q, compile_camp dv q <> nil)
+      /\ (forall dv q, compile_nra dv q <> nil)
+      /\ (forall dv q, compile_nraenv_core dv q <> nil)
+      /\ (forall dv q, compile_nraenv dv q <> nil)
+      /\ (forall dv q, compile_nnrc_core dv q <> nil)
+      /\ (forall dv q, compile_nnrc dv q <> nil)
+      /\ (forall dv q, compile_nnrcmr dv q <> nil).
+    Proof.
+      apply cnd_combined_ind
+      ; simpl; try reflexivity; intros; try discriminate.
+    Qed.
+
+    Lemma compile_nnil_dnnrc :
+      (forall dv q, compile_dnnrc dv q <> nil).
+    Proof.
+      induction dv; simpl; try discriminate.
+    Qed.
+
+    Lemma compile_nnil_dnnrc_typed :
+      (forall dv q, compile_dnnrc_typed dv q <> nil).
+    Proof.
+      induction dv; simpl; try discriminate.
+    Qed.
+
+  Lemma compile_refl (dv: driver) (q: query) :
+    language_of_driver dv = language_of_query q ->    
+    compile dv q <> nil.
+  Proof.
+    intros same_lang.
+    destruct dv; destruct q; vm_compute in same_lang; try discriminate; unfold compile; try solve [apply compile_nnil_cnd | apply compile_nnil_dnnrc_typed].
+  Qed.
 
   Fixpoint driver_of_rev_path config dv rev_path :=
     match rev_path with
@@ -1628,6 +1337,7 @@ Section CompDriver.
     | Dv_sqlpp (Dv_sqlpp_to_nraenv dv) => (L_sqlpp, Some (Dv_nraenv dv))
     | Dv_lambda_nra (Dv_lambda_nra_stop) => (L_lambda_nra, None)
     | Dv_lambda_nra (Dv_lambda_nra_to_nraenv dv) => (L_lambda_nra, Some (Dv_nraenv dv))
+    | Dv_hlcquery (Dv_hlcquery_stop) => (L_hlcquery, None)
     | Dv_nra (Dv_nra_stop) => (L_nra, None)
     | Dv_nra (Dv_nra_to_nnrc_core dv) => (L_nra, Some (Dv_nnrc_core dv))
     | Dv_nra (Dv_nra_to_nraenv_core dv) => (L_nra, Some (Dv_nraenv_core dv))
@@ -2084,6 +1794,12 @@ Section CompDriver.
       [apply target_language_of_driver_is_postfix_nraenv | | ]; simpl; trivial.
   Qed.
 
+  Lemma target_language_of_driver_is_postfix_hlcquery:
+    (forall dv, is_postfix_driver (driver_of_language (target_language_of_driver (Dv_hlcquery dv))) (Dv_hlcquery dv)).
+  Proof.
+    destruct dv; simpl; try reflexivity.
+  Qed.
+
   Lemma target_language_of_driver_is_postfix:
     forall dv,
       no_dv_error dv ->
@@ -2113,6 +1829,7 @@ Section CompDriver.
          target_language_of_driver_is_postfix_sql
          target_language_of_driver_is_postfix_sqlpp
          target_language_of_driver_is_postfix_lambda_nra
+         target_language_of_driver_is_postfix_hlcquery
     : postfix_hints.
     simpl.
     destruct dv; auto with postfix_hints.
@@ -3307,6 +3024,9 @@ Section CompDriver.
           :: L_dnnrc_typed
           :: L_spark_df
           :: nil
+      | L_hlcquery, L_hlcquery =>
+        L_hlcquery
+          :: nil
       (* From nra: *)
       | L_nra, L_nra =>
         L_nra
@@ -4299,6 +4019,15 @@ Section CompDriver.
 
   Hint Resolve exists_path_from_source_target_completeness_lambda_nra : exists_path_hints.
 
+  Lemma exists_path_from_source_target_completeness_hlcquery :
+    (forall dv,
+        exists_path_from_source_target L_hlcquery (target_language_of_driver (Dv_hlcquery dv))).
+  Proof.
+    destruct dv; prove_exists_path_complete.
+  Qed.
+
+  Hint Resolve exists_path_from_source_target_completeness_hlcquery : exists_path_hints.
+
   Proposition get_path_from_source_target_completeness:
     forall dv,
       no_dv_error dv ->
@@ -4389,6 +4118,7 @@ Section CompDriver.
     | L_oql :: L_oql :: path => L_oql :: path
     | L_sql :: L_sql :: path => L_sql :: path
     | L_lambda_nra :: L_lambda_nra :: path => L_lambda_nra :: path
+    | L_hlcquery :: L_hlcquery:: path => L_hlcquery :: path
     | L_nra :: L_nra :: path => L_nra :: path
     | L_nraenv_core :: L_nraenv_core :: path => L_nraenv_core :: path
     | L_nraenv :: L_nraenv :: path => L_nraenv :: path

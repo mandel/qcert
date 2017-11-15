@@ -60,7 +60,7 @@ Section HLCQuerySemantics.
 
     Inductive hlcquery_condition_expr_sem
       : hlcquery_condition_expr ->
-        list (string*data) ->
+        hlcquery_params ->
         list (string*data) ->
         data ->
         Prop :=
@@ -85,7 +85,7 @@ Section HLCQuerySemantics.
     
     Inductive hlcquery_condition_sem :
       hlcquery_condition ->
-      list (string*data) ->
+      hlcquery_params ->
       list (string*data) ->
       bool ->
       Prop :=
@@ -114,7 +114,7 @@ Section HLCQuerySemantics.
 
     Inductive hlcquery_condition_filter_sem :
       hlcquery_condition ->
-      list (string*data) ->
+      hlcquery_params ->
       list hlcquery_datum ->
       list hlcquery_datum ->
       Prop
@@ -132,7 +132,7 @@ Section HLCQuerySemantics.
 
     Inductive hlcquery_condition_filter_optional_sem :
       option (hlcquery_condition) ->
-      list (string*data) ->
+      hlcquery_params ->
       list hlcquery_datum ->
       list hlcquery_datum ->
       Prop :=
@@ -172,7 +172,7 @@ Section HLCQuerySemantics.
     Inductive hlcquery_statement_sem :
       hlcquery_statement ->
       list (registry_name*(list data)) ->
-      list (string*data) ->
+      hlcquery_params ->
       list hlcquery_datum ->
       Prop :=
     | hlcquery_statement_sem_holds
@@ -200,7 +200,7 @@ Section HLCQuerySemantics.
     Inductive hlcquery_sem :
       hlcquery ->
       list (registry_name*(list data)) ->
-      list (string*data) ->
+      hlcquery_params ->
       list hlcquery_datum ->
       Prop := 
     | hlcquery_sem_holds

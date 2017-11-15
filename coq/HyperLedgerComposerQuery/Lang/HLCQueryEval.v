@@ -66,7 +66,7 @@ Section HLCQueryEval.
     (* again, we differentiate false from error *)
     Fixpoint hlcquery_condition_expr_eval
              (cond:hlcquery_condition_expr)
-             (params:list (string*data))
+             (params:hlcquery_params)
              (fields:list (string*data))
       : option data
       := match cond with
@@ -110,7 +110,7 @@ Section HLCQueryEval.
 
     Fixpoint hlcquery_condition_filter_eval
              (cond:hlcquery_condition)
-             (params:list (string*data))
+             (params:hlcquery_params)
              (dl:list hlcquery_datum) : option (list hlcquery_datum)
       := match dl with
          | nil => Some nil
@@ -137,7 +137,7 @@ Section HLCQueryEval.
     Definition hlcquery_statement_eval
                (q:hlcquery_statement)
                (registries: list (registry_name*(list data)))
-               (params:list (string*data))
+               (params:hlcquery_params)
       : option (list hlcquery_datum)
       := let 'mk_hlcquery_statement select_brand reg_name cond ordering skip limit := q in
          bind (hlcquery_statement_from_eval
@@ -159,8 +159,16 @@ Section HLCQueryEval.
     
     Definition hlcquery_eval (q:hlcquery)
                (registries: list (registry_name*(list data)))
-               (params:list (string*data)) :option (list hlcquery_datum)
+               (params:hlcquery_params) :option (list hlcquery_datum)
       := hlcquery_statement_eval (hlcquery_stmt q) registries params.
+
+    Definition bindings_to_registries (env:bindings) : option (list (registry_name*(list data)))
+      := lift_map (fun kv => lift (fun v' => (fst kv, v')) (ondcoll id (snd kv))) env.
+
+    Definition eval_hlcquery_top (q:hlcquery) (params:hlcquery_params) (cenv: bindings) : option data
+      := lift (fun results => dcoll (map drec results))
+              (bind (bindings_to_registries cenv)
+                    (fun registries => hlcquery_eval q registries params)).
 
   End eval.
 

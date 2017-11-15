@@ -27,6 +27,7 @@ Section CompCorrectness.
   Require Import SQLRuntime.
   Require Import OQLRuntime.
   Require Import LambdaNRARuntime.
+  Require Import HLCQueryRuntime.
   (* Rule languages *)
   Require Import CAMPRuleRuntime.
   Require Import TechRuleRuntime.
@@ -272,6 +273,11 @@ Section CompCorrectness.
     | Dv_lambda_nra_to_nraenv dv => True /\ driver_correct_nraenv dv
     end.
 
+  Definition driver_correct_hlcquery (dv: hlcquery_driver) :=
+    match dv with
+    | Dv_hlcquery_stop => True
+    end.
+
   Definition driver_correct (dv: driver)  :=
     match dv with
     | Dv_camp_rule dv => driver_correct_camp_rule dv
@@ -282,6 +288,7 @@ Section CompCorrectness.
     | Dv_sql dv => driver_correct_sql dv
     | Dv_sqlpp dv => driver_correct_sqlpp dv
     | Dv_lambda_nra dv => driver_correct_lambda_nra dv
+    | Dv_hlcquery dv => driver_correct_hlcquery dv
     | Dv_nra dv => driver_correct_nra dv
     | Dv_nraenv_core dv => driver_correct_nraenv_core dv
     | Dv_nraenv dv => driver_correct_nraenv dv
@@ -364,6 +371,10 @@ Section CompCorrectness.
                            (lift_output (eval_lambda_nra ?h ?c (lift_input ?i))) ] =>
         destruct  (lift_output (eval_lambda_nra h c (lift_input i))); simpl; try reflexivity;
         unfold equal_outputs; simpl; match_destr; auto
+      | [ |- equal_outputs (lift_output (eval_hlcquery ?h ?c ?p (lift_input ?i)))
+                           (lift_output (eval_hlcquery ?h ?c ?p (lift_input ?i))) ] =>
+        destruct  (lift_output (eval_hlcquery h c p (lift_input i))); simpl; try reflexivity;
+        unfold equal_outputs; simpl; match_destr; auto
       | [ |- equal_outputs (lift_output (nnrcmr_eval_top ?h ?init ?c ?i))
                            (lift_output (nnrcmr_eval_top ?h ?init ?c ?i)) ] =>
         destruct  (lift_output (nnrcmr_eval_top h init c i)); simpl; try reflexivity;
@@ -404,6 +415,7 @@ Section CompCorrectness.
     | (Dv_sql _, Q_sql _) => True
     | (Dv_sqlpp _, Q_sqlpp _) => True
     | (Dv_lambda_nra _, Q_lambda_nra _) => True
+    | (Dv_hlcquery _, Q_hlcquery _ _) => True
     | (Dv_nra _, Q_nra _) => True
     | (Dv_nraenv_core _, Q_nraenv_core _) => True
     | (Dv_nraenv _, Q_nraenv _) => True
@@ -420,6 +432,14 @@ Section CompCorrectness.
     | (Dv_cloudant _, Q_cloudant _) => True
     | (_, _) => False
     end.
+
+    Lemma driver_matches_query_refl (dv:driver) (q:query) :
+      language_of_driver dv = language_of_query q ->
+      driver_matches_query dv q.
+    Proof.
+      unfold driver_matches_query.
+      destruct dv; destruct q; simpl; trivial; try discriminate.
+    Qed.    
     
     Lemma correct_driver_succeeds_cnd:
       (forall dv, driver_correct (Dv_camp dv)
@@ -732,6 +752,18 @@ Section CompCorrectness.
       rewrite Forall_forall in H.
       auto.
     Qed.
+
+    Lemma correct_driver_succeeds_hlcquery:
+      forall dv, driver_correct (Dv_hlcquery dv) ->
+                 (forall q params, Forall query_not_error
+                                   (compile (Dv_hlcquery dv) (Q_hlcquery q params))).
+    Proof.
+      intros.
+      rewrite Forall_forall; intros.
+      simpl in H0.
+      elim H0; clear H0; intros; [rewrite <- H0; simpl; trivial| ].
+      destruct dv; [simpl in *; contradiction].
+    Qed.
       
     Lemma correct_driver_succeeds_cldmr:
       forall dv, driver_correct (Dv_cldmr dv) ->
@@ -845,29 +877,32 @@ Section CompCorrectness.
       Forall query_not_error (compile dv q).
     Proof.
       intros.
-      destruct dv; destruct q; try contradiction; clear H0.
-      - apply correct_driver_succeeds_camp_rule; auto.
-      - apply correct_driver_succeeds_tech_rule; auto.
-      - apply correct_driver_succeeds_designer_rule; auto.
-      - apply correct_driver_succeeds_camp; auto.
-      - apply correct_driver_succeeds_oql; auto.
-      - apply correct_driver_succeeds_sql; auto.
-      - apply correct_driver_succeeds_sqlpp; auto.
-      - apply correct_driver_succeeds_lambda_nra; auto.
-      - apply correct_driver_succeeds_nra; auto.
-      - apply correct_driver_succeeds_nraenv_core; auto.
-      - apply correct_driver_succeeds_nraenv; auto.
-      - apply correct_driver_succeeds_nnrc_core; auto.
-      - apply correct_driver_succeeds_nnrc; auto.
-      - apply correct_driver_succeeds_nnrcmr; auto.
-      - apply correct_driver_succeeds_cldmr; auto.
-      - apply correct_driver_succeeds_dnnrc; auto.
-      - apply correct_driver_succeeds_dnnrc_typed; auto.
-      - apply correct_driver_succeeds_javascript; auto.
-      - apply correct_driver_succeeds_java; auto.
-      - apply correct_driver_succeeds_spark_rdd; auto.
-      - apply correct_driver_succeeds_spark_df; auto.
-      - apply correct_driver_succeeds_cloudant; auto.
+      Hint Resolve 
+           correct_driver_succeeds_camp_rule 
+           correct_driver_succeeds_tech_rule 
+           correct_driver_succeeds_designer_rule 
+           correct_driver_succeeds_camp 
+           correct_driver_succeeds_oql 
+           correct_driver_succeeds_sql 
+           correct_driver_succeeds_sqlpp 
+           correct_driver_succeeds_lambda_nra 
+           correct_driver_succeeds_hlcquery 
+           correct_driver_succeeds_nra 
+           correct_driver_succeeds_nraenv_core 
+           correct_driver_succeeds_nraenv 
+           correct_driver_succeeds_nnrc_core 
+           correct_driver_succeeds_nnrc 
+           correct_driver_succeeds_nnrcmr 
+           correct_driver_succeeds_cldmr 
+           correct_driver_succeeds_dnnrc 
+           correct_driver_succeeds_dnnrc_typed 
+           correct_driver_succeeds_javascript 
+           correct_driver_succeeds_java 
+           correct_driver_succeeds_spark_rdd 
+           correct_driver_succeeds_spark_df 
+           correct_driver_succeeds_cloudant : correct_driver_succeeds.
+
+      destruct dv; destruct q; try contradiction; auto with correct_driver_succeeds.
     Qed.
     
     Definition query_preserves_eval (q1 q2:query) : Prop :=
@@ -1540,6 +1575,20 @@ Section CompCorrectness.
         apply H1.
     Qed.
 
+    Lemma correct_driver_preserves_eval_hlcquery:
+      forall dv, driver_correct (Dv_hlcquery dv) ->
+                 (forall q params, Forall (query_preserves_eval (Q_hlcquery q params))
+                                   (compile (Dv_hlcquery dv) (Q_hlcquery q params))).
+    Proof.
+      intros.
+      rewrite Forall_forall; intros.
+      simpl in H0.
+      elim H0; intros.
+      - rewrite <- H1; simpl; trivial_same_query.
+      - clear H0.
+        destruct dv; simpl in H1; [contradiction].
+    Qed.
+
     Lemma correct_driver_preserves_eval_sql:
       forall dv, driver_correct (Dv_sql dv) ->
                  (forall q, Forall (query_preserves_eval (Q_sql q))
@@ -1662,29 +1711,30 @@ input data returns the same output data. *)
       Forall (query_preserves_eval q) (compile dv q).
     Proof.
       intros.
-      destruct dv; destruct q; try contradiction; clear H0.
-      - apply correct_driver_preserves_eval_camp_rule; auto.
-      - apply correct_driver_preserves_eval_tech_rule; auto.
-      - apply correct_driver_preserves_eval_designer_rule; auto.
-      - apply correct_driver_preserves_eval_camp; auto.
-      - apply correct_driver_preserves_eval_oql; auto.
-      - apply correct_driver_preserves_eval_sql; auto.
-      - apply correct_driver_preserves_eval_sqlpp; auto.
-      - apply correct_driver_preserves_eval_lambda_nra; auto.
-      - apply correct_driver_preserves_eval_nra; auto.
-      - apply correct_driver_preserves_eval_nraenv_core; auto.
-      - apply correct_driver_preserves_eval_nraenv; auto.
-      - apply correct_driver_preserves_eval_nnrc_core; auto.
-      - apply correct_driver_preserves_eval_nnrc; auto.
-      - apply correct_driver_preserves_eval_nnrcmr; auto.
-      - apply correct_driver_preserves_eval_cldmr; auto.
-      - apply correct_driver_preserves_eval_dnnrc; auto.
-      - apply correct_driver_preserves_eval_dnnrc_typed; auto.
-      - apply correct_driver_preserves_eval_javascript; auto.
-      - apply correct_driver_preserves_eval_java; auto.
-      - apply correct_driver_preserves_eval_spark_rdd; auto.
-      - apply correct_driver_preserves_eval_spark_df; auto.
-      - apply correct_driver_preserves_eval_cloudant; auto.
+      Hint Resolve correct_driver_preserves_eval_camp_rule
+           correct_driver_preserves_eval_tech_rule
+           correct_driver_preserves_eval_designer_rule
+           correct_driver_preserves_eval_camp
+           correct_driver_preserves_eval_oql
+           correct_driver_preserves_eval_sql
+           correct_driver_preserves_eval_sqlpp
+           correct_driver_preserves_eval_lambda_nra
+           correct_driver_preserves_eval_hlcquery
+           correct_driver_preserves_eval_nra
+           correct_driver_preserves_eval_nraenv_core
+           correct_driver_preserves_eval_nraenv
+           correct_driver_preserves_eval_nnrc_core
+           correct_driver_preserves_eval_nnrc
+           correct_driver_preserves_eval_nnrcmr
+           correct_driver_preserves_eval_cldmr
+           correct_driver_preserves_eval_dnnrc
+           correct_driver_preserves_eval_dnnrc_typed
+           correct_driver_preserves_eval_javascript
+           correct_driver_preserves_eval_java
+           correct_driver_preserves_eval_spark_rdd
+           correct_driver_preserves_eval_spark_df
+           correct_driver_preserves_eval_cloudant : correct_drivers_preserves_eval.
+      destruct dv; destruct q; try contradiction; auto with correct_drivers_preserves_eval.
     Qed.
     
   End eval_preserved.
