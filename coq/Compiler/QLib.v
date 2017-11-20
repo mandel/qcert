@@ -16,7 +16,7 @@
 
 Require Import CompilerRuntime.
 Require QData QOperators.
-Require QOQL QSQL QSQLPP QLambdaNRA QCAMP QCAMPRule.
+Require QOQL QSQL QSQLPP QLambdaNRA QCAMP QCAMPRule QHLCQ.
 Require QUtil QType QEval.
 Require QLang QDriver QStat. 
 
@@ -32,6 +32,7 @@ Module QLib(runtime:CompilerRuntime).
   Module QLambdaNRA := QLambdaNRA.QLambdaNRA runtime.
   Module QCAMP := QCAMP.QCAMP runtime.
   Module QCAMPRule := QCAMPRule.QCAMPRule runtime.
+  Module QHCLQ := QHLCQ.QHLCQ runtime.
 
   Module QLang := QLang.QLang runtime.
   Module QDriver := QDriver.QDriver runtime.

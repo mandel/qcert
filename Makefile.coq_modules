@@ -329,6 +329,7 @@ MODULES = \
 	Compiler/QLib/QSQL \
 	Compiler/QLib/QSQLPP \
 	Compiler/QLib/QLambdaNRA \
+	Compiler/QLib/QHLCQ \
 	Compiler/QLib/QLang \
 	Compiler/QLib/QDriver \
 	Compiler/QLib/QStat \
