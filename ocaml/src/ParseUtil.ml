@@ -84,6 +84,7 @@ let parse_query l f : (string * QLang.query) =
   | QcertCompiler.L_oql -> ("OQL", QcertCompiler.Q_oql (parse_oql f))
   | QcertCompiler.L_sql -> raise (Qcert_Error "SQL should be parsed from String, not lexer")
   | QcertCompiler.L_sqlpp -> raise (Qcert_Error "SQL++ should be parsed from String, not lexer")
+  | QcertCompiler.L_hlcquery -> raise (Qcert_Error "HLCQ should be parsed from String, not lexer")
   | QcertCompiler.L_tech_rule -> raise (Qcert_Error "Technical rule should be parsed from String, not lexer")
   | QcertCompiler.L_designer_rule -> raise (Qcert_Error "Designer rule should be parsed from binary file contents, not lexer")
   | QcertCompiler.L_lambda_nra -> ("LambdaNRA", QcertCompiler.Q_lambda_nra (parse_lambda_nra f))

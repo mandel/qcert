@@ -29,6 +29,7 @@ let output_query pconf q =
   | QcertCompiler.Q_oql q -> pretty_query pconf pretty_oql q
   | QcertCompiler.Q_sql q -> pretty_query pconf pretty_sql q
   | QcertCompiler.Q_sqlpp q -> pretty_query pconf pretty_sqlpp q
+  | QcertCompiler.Q_hlcquery q -> pretty_query pconf pretty_hlcq q
   | QcertCompiler.Q_lambda_nra q -> pretty_query pconf pretty_lambda_nra q
   | QcertCompiler.Q_nra q -> pretty_query pconf pretty_nra q
   | QcertCompiler.Q_nraenv_core q -> pretty_query pconf pretty_nraenv_core q

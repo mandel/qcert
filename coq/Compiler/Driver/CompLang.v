@@ -73,7 +73,7 @@ Section CompLang.
       | "oql"%string => L_oql
       | "sql"%string => L_sql
       | "sqlpp"%string => L_sqlpp
-      | "hlcquery"%string => L_hlcquery
+      | "hlcq"%string => L_hlcquery
       | "lambda_nra"%string => L_lambda_nra
       | "nra"%string => L_nra
       | "nraenv_core"%string => L_nraenv_core
@@ -102,7 +102,7 @@ Section CompLang.
       | L_oql => "oql"%string
       | L_sql => "sql"%string
       | L_sqlpp => "sqlpp"%string
-      | L_hlcquery => "hlcquery"%string 
+      | L_hlcquery => "hlcq"%string 
       | L_lambda_nra => "lambda_nra"%string
       | L_nra => "nra"%string
       | L_nraenv_core => "nraenv_core"%string
@@ -154,7 +154,7 @@ Section CompLang.
 
     Open Scope string.
     Definition language_descriptions :=
-      (L_hlcquery,FrontEnd,"HLCQuery", "HyperLedger Composer Query Language")
+      (L_hlcquery,FrontEnd,"HLCQ", "HyperLedger Composer Query Language")
         ::(L_sql,FrontEnd,"SQL", "Structured Query Language")
         :: (L_sqlpp,FrontEnd,"SQL++","SQL With Semi-Structured Data Extensions")
         :: (L_oql,FrontEnd,"OQL", "Object Query Language")

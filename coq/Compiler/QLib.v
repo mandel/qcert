@@ -32,7 +32,7 @@ Module QLib(runtime:CompilerRuntime).
   Module QLambdaNRA := QLambdaNRA.QLambdaNRA runtime.
   Module QCAMP := QCAMP.QCAMP runtime.
   Module QCAMPRule := QCAMPRule.QCAMPRule runtime.
-  Module QHCLQ := QHLCQ.QHLCQ runtime.
+  Module QHLCQ := QHLCQ.QHLCQ runtime.
 
   Module QLang := QLang.QLang runtime.
   Module QDriver := QDriver.QDriver runtime.

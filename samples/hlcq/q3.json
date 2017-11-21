@@ -1,0 +1,53 @@
+{
+  "kind": "Query",
+  "identifier": {
+    "kind": "Identifier",
+    "name": "selectCommoditiesByOwner"
+  },
+  "description": "Select all commodities based on their owner",
+  "select": {
+    "kind": "SELECT",
+    "resource": "org.acme.mynetwork.Commodity",
+    "where": {
+      "kind": "BinaryExpression",
+      "operator": "==",
+      "left": {
+        "kind": "Identifier",
+        "name": "owner"
+      },
+      "right": {
+        "kind": "Identifier",
+        "name": "_$owner"
+      }
+    },
+    "limit": null,
+    "skip": null,
+    "orderBy": null,
+    "location": {
+      "start": {
+        "offset": 505,
+        "line": 20,
+        "column": 7
+      },
+      "end": {
+        "offset": 576,
+        "line": 22,
+        "column": 1
+      }
+    },
+    "text": "SELECT org.acme.mynetwork.Commodity\n          WHERE (owner == _$owner)\n"
+  },
+  "location": {
+    "start": {
+      "offset": 392,
+      "line": 17,
+      "column": 1
+    },
+    "end": {
+      "offset": 579,
+      "line": 24,
+      "column": 1
+    }
+  }
+}
+

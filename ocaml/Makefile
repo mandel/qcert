@@ -22,7 +22,7 @@ QCERT_HOME=$(CURDIR)/..
 ############# Shouldn't have to be changed after this
 OCAMLBUILD= ocamlbuild \
 		-no-links -classic-display \
-		-tags annot -use-ocamlfind -package unix -package base64
+		-tags annot -use-ocamlfind -package atdgen -package unix -package base64
 
 MENHIRFLAG=-use-menhir
 #MENHIRFLAG=
@@ -59,26 +59,37 @@ extracted/StaticConfig.ml extracted/QcertCompiler.ml extracted/QcertCompiler.mli
 	echo "let qcert_home = \"$(QCERT_HOME)\"" >> extracted/StaticConfig.ml
 	(cd extracted; coqc -R ../../coq Qcert ../QcertExtraction.v)
 
+## ATDs
+
+src/Hlcq_t.ml src/Hlcq_t.mli: src/Hlcq.atd
+	atdgen -t $<
+
+src/Hlcq_j.ml src/Hlcq_j.mli: src/Hlcq.atd
+	atdgen -j -j-std $<
+
+ATDS=src/Hlcq_t.ml src/Hlcq_t.mli src/Hlcq_j.ml src/Hlcq_j.mli
+
 ## Native
-../bin/$(MAIN): src/QcertJsRuntime.ml extracted $(MAIN).$(TARGET)
+../bin/$(MAIN): src/QcertJsRuntime.ml extracted $(ATDS) $(MAIN).$(TARGET)
 	cp _build/$(MAIN).$(TARGET) ../bin/$(MAIN)
 
-$(MAIN).$(TARGET): src/QcertJsRuntime.ml extracted
+$(MAIN).$(TARGET): src/QcertJsRuntime.ml extracted $(ATDS)
 	$(OCAMLBUILD) $(MENHIRFLAG) -Is extracted -Is src $(MAIN).$(TARGET)
 
-../bin/$(MAIN2): src/QcertJsRuntime.ml extracted $(MAIN2).$(TARGET)
+../bin/$(MAIN2): src/QcertJsRuntime.ml extracted $(ATDS) $(MAIN2).$(TARGET)
 	cp _build/$(MAIN2).$(TARGET) ../bin/$(MAIN2)
 
-$(MAIN2).$(TARGET): src/QcertJsRuntime.ml extracted
+$(MAIN2).$(TARGET): src/QcertJsRuntime.ml extracted $(ATDS)
 	$(OCAMLBUILD) $(MENHIRFLAG) -Is extracted -Is src $(MAIN2).$(TARGET)
 
 ## JavaScript
-../bin/$(MAIN3).js: src/QcertJsRuntime.ml extracted _build_js/$(MAIN3).byte
+../bin/$(MAIN3).js: src/QcertJsRuntime.ml extracted $(ATDS) _build_js/$(MAIN3).byte
 	js_of_ocaml _build_js/$(MAIN3).byte
 	cp _build_js/$(MAIN3).js ../bin/$(MAIN3).js
 
-_build_js/$(MAIN3).byte: src/QcertJsRuntime.ml extracted $(MAIN3).ml
-	$(OCAMLBUILD) $(MENHIRFLAG) -build-dir _build_js -use-ocamlfind -package js_of_ocaml -package js_of_ocaml.ppx -Is extracted -Is src $(MAIN3).byte
+_build_js/$(MAIN3).byte: src/QcertJsRuntime.ml extracted $(ATDS) $(MAIN3).ml
+	$(OCAMLBUILD) $(MENHIRFLAG) -build-dir _build_js -use-ocamlfind \
+		-package atdgen -package js_of_ocaml -package js_of_ocaml.ppx -Is extracted -Is src $(MAIN3).byte
 
 ## Whisk
 wsk-update: js
@@ -102,6 +113,7 @@ cleanall: clean
 	rm -f CampLexer.ml CampParser.ml CampParser.mli
 	rm -f DataLexer.ml DataParser.ml DataParser.mli
 	rm -f SexpLexer.ml SexpParser.ml SexpParser.mli
+	rm -g $(ATDS)
 	rm -f QcertExtraction.glob QcertExtraction.vo .QcertExtraction.aux
 	rm -rf extracted
 	rm -rf src/QcertJsRuntime.ml

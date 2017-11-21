@@ -70,6 +70,11 @@ let pretty_sql greek margin annot hierarchy link_runtime q =
 let pretty_sqlpp greek margin annot hierarchy link_runtime q =
   "(* There is no pretty printer for SQL++ at the moment. *)\n"  (* XXX TODO XXX *)
 
+(** Pretty HLCQ *)
+
+let pretty_hlcq greek margin annot hierarchy link_runtime q =
+  "(* There is no pretty printer for HLCQ at the moment. *)\n"  (* XXX TODO XXX *)
+
 (** Pretty LambdaNRA *)
 
 let pretty_lambda_nra greek margin annot hierarchy link_runtime q =

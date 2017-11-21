@@ -31,6 +31,7 @@ val pretty_camp : QcertCompiler.camp pretty_fun
 val pretty_oql : QcertCompiler.oql pretty_fun
 val pretty_sql : QcertCompiler.sql pretty_fun
 val pretty_sqlpp : QcertCompiler.sqlpp pretty_fun
+val pretty_hlcq : QcertCompiler.hlcquery pretty_fun
 val pretty_lambda_nra : QcertCompiler.lambda_nra pretty_fun
 val pretty_nra : QcertCompiler.nra pretty_fun
 val pretty_nraenv_core : QcertCompiler.nraenv_core pretty_fun

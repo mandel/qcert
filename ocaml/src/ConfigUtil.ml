@@ -79,6 +79,7 @@ let suffix_camp () = "_camp.camp"
 let suffix_oql () = "_oql.txt"
 let suffix_sql () = "_sql.txt"
 let suffix_sqlpp () = "_sqlpp.txt"
+let suffix_hlcq () = "_hlcq.txt"
 let suffix_nra () = "_nra.txt"
 let suffix_lambda_nra () = "_lnra.txt"
 let suffix_nraenv () = "_nraenv.txt"
@@ -117,6 +118,7 @@ let suffix_of_language lang =
   | QcertCompiler.L_oql -> suffix_oql ()
   | QcertCompiler.L_sql -> suffix_sql ()
   | QcertCompiler.L_sqlpp -> suffix_sql ()
+  | QcertCompiler.L_hlcquery -> suffix_hlcq ()
   | QcertCompiler.L_lambda_nra -> suffix_lambda_nra ()
   | QcertCompiler.L_nra -> suffix_nra ()
   | QcertCompiler.L_nraenv -> suffix_nraenv ()

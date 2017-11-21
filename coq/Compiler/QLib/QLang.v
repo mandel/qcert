@@ -36,6 +36,7 @@ Module QLang(runtime:CompilerRuntime).
     Definition oql := oql.
     Definition sql := sql.
     Definition sqlpp := sqlpp.
+    Definition hlcq := hlcquery.
     Definition lambda_nra := lambda_nra.
     Definition nra := nra.
     Definition nraenv_core := nraenv_core.

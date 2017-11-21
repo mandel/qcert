@@ -1,0 +1,36 @@
+type json <ocaml module="Yojson.Basic"> = abstract
+
+type ident = {
+    kind : string;
+    name : string
+} <ocaml field_prefix="hlcq_i_">
+
+type loc = {
+    offset : int;
+    line : int;
+    column : int;
+} <ocaml field_prefix="hlcq_">
+
+type location = {
+    start : loc;
+    end : loc;
+} <ocaml field_prefix="hlcq_">
+
+type select = {
+   kind : string;
+   resource : string;
+   where : json nullable;
+   limit : json nullable;
+   skip : json nullable;
+   orderBy : json nullable;
+   location : location;
+} <ocaml field_prefix="hlcq_s_">
+
+type query = {
+    kind : string;
+    identifier : ident;
+    description : string;
+    select : select;
+    location : location;
+} <ocaml field_prefix="hlcq_q_">
+

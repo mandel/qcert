@@ -1,0 +1,42 @@
+{
+  "kind": "Query",
+  "identifier": {
+    "kind": "Identifier",
+    "name": "selectCommodities"
+  },
+  "description": "Select all commodities",
+  "select": {
+    "kind": "SELECT",
+    "resource": "org.acme.mynetwork.Commodity",
+    "where": null,
+    "limit": null,
+    "skip": null,
+    "orderBy": null,
+    "location": {
+      "start": {
+        "offset": 147,
+        "line": 7,
+        "column": 7
+      },
+      "end": {
+        "offset": 183,
+        "line": 8,
+        "column": 1
+      }
+    },
+    "text": "SELECT org.acme.mynetwork.Commodity\n"
+  },
+  "location": {
+    "start": {
+      "offset": 62,
+      "line": 4,
+      "column": 1
+    },
+    "end": {
+      "offset": 186,
+      "line": 10,
+      "column": 1
+    }
+  }
+}
+

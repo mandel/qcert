@@ -1,0 +1,52 @@
+{
+  "kind": "Query",
+  "identifier": {
+    "kind": "Identifier",
+    "name": "selectCommoditiesWithHighQuantity"
+  },
+  "description": "Select commodities based on quantity",
+  "select": {
+    "kind": "SELECT",
+    "resource": "org.acme.mynetwork.Commodity",
+    "where": {
+      "kind": "BinaryExpression",
+      "operator": ">",
+      "left": {
+        "kind": "Identifier",
+        "name": "quantity"
+      },
+      "right": {
+        "kind": "Literal",
+        "value": 60
+      }
+    },
+    "limit": null,
+    "skip": null,
+    "orderBy": null,
+    "location": {
+      "start": {
+        "offset": 694,
+        "line": 27,
+        "column": 7
+      },
+      "end": {
+        "offset": 762,
+        "line": 29,
+        "column": 1
+      }
+    },
+    "text": "SELECT org.acme.mynetwork.Commodity\n          WHERE (quantity > 60)\n"
+  },
+  "location": {
+    "start": {
+      "offset": 579,
+      "line": 24,
+      "column": 1
+    },
+    "end": {
+      "offset": 764,
+      "line": 30,
+      "column": 1
+    }
+  }
+}

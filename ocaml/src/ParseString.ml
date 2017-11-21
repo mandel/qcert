@@ -74,12 +74,17 @@ let parse_designer_rule_from_string s : QLang.designer_rule =
   QCAMPRule.rule_match
     (parse_camp_sexp_from_string 
        (JavaService.main "serialRule2CAMP" (B64.encode s)))
-    
+
+let parse_hlcq_from_string s : QLang.hlcq =
+  let hlcq_json = Hlcq_j.query_of_string s in
+  QcertHLCQ.hlcq_of_hlcq_json hlcq_json
+  
 let parse_query_from_string l s : string * QLang.query =
   begin match l with
   | QcertCompiler.L_sql -> ("SQL", QcertCompiler.Q_sql (AstsToSExp.sexp_to_sql(parse_sexp_from_string (JavaService.main "parseSQL" s))))
   | QcertCompiler.L_sqlpp -> ("SQLPP", QcertCompiler.Q_sqlpp (AstsToSExp.sexp_to_sqlpp(parse_sexp_from_string (JavaService.main "parseSQLPP" s))))
   | QcertCompiler.L_tech_rule -> ("TechRule", QcertCompiler.Q_tech_rule (parse_tech_rule_from_string s))
   | QcertCompiler.L_designer_rule -> ("DesignerRule", QcertCompiler.Q_designer_rule (parse_designer_rule_from_string s))
+  | QcertCompiler.L_hlcquery -> ("HLCQ", QcertCompiler.Q_hlcquery (parse_hlcq_from_string s))
   | _ ->  parse_string (parse_query l) s
   end

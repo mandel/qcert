@@ -1703,6 +1703,8 @@ let sexp_to_query (lang: QLang.language) (se: sexp) : QLang.query =
       raise (Qcert_Error ("sexp to "^(QcertUtil.name_of_language lang)^" not yet implemented")) (* XXX TODO XXX *)
   | L_sql -> Q_sql (sexp_to_sql se)
 	| L_sqlpp -> Q_sqlpp (sexp_to_sqlpp se)
+  | L_hlcquery ->
+      raise (Qcert_Error ("sexp to "^(QcertUtil.name_of_language lang)^" not yet implemented")) (* XXX TODO XXX *)
   | L_lambda_nra ->
       raise (Qcert_Error ("sexp to "^(QcertUtil.name_of_language lang)^" not yet implemented")) (* XXX TODO XXX *)
   | L_camp_rule -> Q_camp_rule (sexp_to_camp_rule se)
@@ -1741,6 +1743,8 @@ let query_to_sexp (q: QLang.query) : sexp =
   | Q_sql _ ->
       SString ((QcertUtil.name_of_query q)^" to sexp not yet implemented") (* XXX TODO XXX *)
   | Q_sqlpp q -> sqlpp_to_sexp q
+  | Q_hlcquery _ ->
+      SString ((QcertUtil.name_of_query q)^" to sexp not yet implemented") (* XXX TODO XXX *)
   | Q_lambda_nra _ ->
       SString ((QcertUtil.name_of_query q)^" to sexp not yet implemented") (* XXX TODO XXX *)
   | Q_camp_rule q -> camp_rule_to_sexp q
@@ -1771,3 +1775,5 @@ let query_to_sexp (q: QLang.query) : sexp =
   | Q_error err ->
       SString ("query_to_sexp: "^(Util.string_of_char_list err))
   end
+
+open QcertHLCQ
